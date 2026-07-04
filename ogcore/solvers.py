@@ -18,7 +18,9 @@ import numpy as np
 
 
 class _Accelerator:
-    """Base class: works on a flat, per-element-scaled iterate.
+    """
+    Base class for outer-loop update rules: works on a flat,
+    per-element-scaled iterate.
 
     The macro/price blocks differ in magnitude by orders (r ~ 0.05, BQ/TR
     large), which would swamp the least-squares in raw units. So each element
@@ -30,6 +32,19 @@ class _Accelerator:
         self._scale = None
 
     def update(self, x, gx):
+        """
+        Propose the next iterate from the current iterate and map value.
+
+        Args:
+            x (array_like): current iterate of the flattened outer-loop
+                variables
+            gx (array_like): value of the fixed-point map G(x) implied by
+                the model at the current iterate
+
+        Returns:
+            x_next (Numpy array): proposed next iterate, in the same
+                (unscaled) units as ``x``
+        """
         x = np.asarray(x, dtype=float)
         gx = np.asarray(gx, dtype=float)
         if self._scale is None:
@@ -39,21 +54,53 @@ class _Accelerator:
         return step * self._scale
 
     def _step(self, x, g):
+        """
+        Compute the next iterate in scaled units (implemented by
+        subclasses).
+
+        Args:
+            x (Numpy array): current iterate, per-element scaled
+            g (Numpy array): fixed-point map value at ``x``, per-element
+                scaled
+
+        Returns:
+            x_next (Numpy array): next iterate, per-element scaled
+        """
         raise NotImplementedError
 
     def reset(self):
-        """Drop accumulated history so the next step restarts fresh (used by
-        run_TPI's safety net when an accelerated step diverges). The fixed
-        per-element scale is kept."""
+        """
+        Drop accumulated history so the next step restarts fresh (used by
+        ``run_TPI``'s safety net when an accelerated step diverges). The
+        fixed per-element scale is kept.
+
+        Returns:
+            None
+        """
 
 
 class AndersonAccelerator(_Accelerator):
-    """Anderson acceleration (type-II), limited memory ``m``, mixing ``beta``.
+    r"""
+    Anderson acceleration (type-II) with limited memory for the TPI outer
+    loop.
 
-    x_{k+1} = x_k + beta f_k - (dX + beta dF) gamma, where f = g - x, dX/dF are
-    the last ``m`` iterate/residual differences, and gamma solves the least
-    squares ``min_gamma || f_k - dF gamma ||``. beta=1 is undamped; beta<1 adds
-    damping for robustness far from the solution.
+    Given the residual :math:`f_k = G(x_k) - x_k` and the differences
+    :math:`\Delta X, \Delta F` of the last ``m`` iterates and residuals,
+    the update is
+
+    .. math::
+        x_{k+1} = x_k + \beta f_k - (\Delta X + \beta\Delta F)\gamma,
+
+    where :math:`\gamma` solves the least squares problem
+    :math:`\min_{\gamma}\ \lVert f_k - \Delta F\gamma\rVert`.
+    ``beta = 1`` is undamped; ``beta < 1`` adds damping for robustness far
+    from the solution.
+
+    Args:
+        m (int): number of previous iterates kept in the acceleration
+            memory
+        beta (float): mixing (relaxation) parameter applied to the
+            residual
     """
 
     def __init__(self, m=5, beta=1.0):
@@ -64,6 +111,18 @@ class AndersonAccelerator(_Accelerator):
         self._F = []
 
     def _step(self, x, g):
+        """
+        Compute the Anderson-accelerated next iterate in scaled units.
+
+        Args:
+            x (Numpy array): current iterate, per-element scaled
+            g (Numpy array): fixed-point map value at ``x``, per-element
+                scaled
+
+        Returns:
+            x_next (Numpy array): accelerated next iterate, per-element
+                scaled
+        """
         f = g - x
         self._X.append(x)
         self._F.append(f)
@@ -84,13 +143,35 @@ class AndersonAccelerator(_Accelerator):
         return x_next
 
     def reset(self):
+        """
+        Clear the stored iterate and residual history so the next step
+        restarts the acceleration from scratch. The fixed per-element
+        scale is kept.
+
+        Returns:
+            None
+        """
         self._X = []
         self._F = []
 
 
 def make_outer_updater(method, p):
-    """Return an updater for ``p.TPI_outer_method`` (None for the native
-    ``picard`` path, which ``run_TPI`` handles itself)."""
+    """
+    Create the outer-loop updater selected by ``p.TPI_outer_method``.
+
+    Args:
+        method (str or None): outer-loop update rule, either "picard" or
+            "anderson" (None defaults to "picard")
+        p (OG-Core Specifications object): model parameters
+
+    Returns:
+        updater (AndersonAccelerator or None): accelerator instance for
+            "anderson", or None for "picard", in which case ``run_TPI``
+            keeps its native damped update
+
+    Raises:
+        ValueError: if ``method`` is not a recognized update rule
+    """
     method = (method or "picard").lower()
     if method == "picard":
         return None
@@ -103,8 +184,15 @@ def make_outer_updater(method, p):
 
 
 def _selftest():
-    """Validate the accelerator math on a linear contraction fixed point,
-    independent of OG-Core: Anderson should converge and beat plain Picard."""
+    """
+    Validate the accelerator math on a linear contraction fixed point,
+    independent of OG-Core: Anderson should converge and beat plain
+    Picard.
+
+    Returns:
+        out (dict): iterations to convergence for the damped Picard and
+            Anderson update rules
+    """
     A = np.array([[0.6, 0.2, 0.0], [0.1, 0.5, 0.2], [0.0, 0.3, 0.7]])
     b = np.array([1.0, -2.0, 3.0])
 
