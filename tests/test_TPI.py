@@ -302,13 +302,13 @@ def test_tpi_outer_method_default_is_picard():
 
 def test_make_outer_updater():
     # picard -> None (native damped path); anderson -> an AndersonAccelerator
-    # configured from the p.tpi_anderson_* params; unknown -> ValueError.
+    # configured from the p.TPI_anderson_* params; unknown -> ValueError.
     p = Specifications()
     assert solvers.make_outer_updater("picard", p) is None
     u = solvers.make_outer_updater("anderson", p)
     assert isinstance(u, solvers.AndersonAccelerator)
-    assert u.m == p.tpi_anderson_m
-    assert u.beta == p.tpi_anderson_beta
+    assert u.m == p.TPI_anderson_m
+    assert u.beta == p.TPI_anderson_beta
     with pytest.raises(ValueError):
         solvers.make_outer_updater("not-a-method", p)
 

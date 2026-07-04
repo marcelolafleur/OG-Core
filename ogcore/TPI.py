@@ -925,8 +925,8 @@ def run_TPI(p, client=None):
     euler_errors = np.zeros((p.T, 2 * p.S, p.J))
     TPIdist_vec = np.zeros(p.maxiter)
     # Pluggable outer-loop update rule. Default "picard" -> None -> the native
-    # damped fixed-point path below (unchanged, so golden outputs are
-    # preserved); "anderson" accelerates using the residual history. See
+    # damped functional-iteration path below (unchanged, so golden outputs
+    # are preserved); "anderson" accelerates using the residual history. See
     # ogcore.solvers.
     outer_updater = solvers.make_outer_updater(
         getattr(p, "TPI_outer_method", "picard"), p
@@ -939,11 +939,11 @@ def run_TPI(p, client=None):
     # overshoot-into-infeasible-region divergence of unguarded accelerators.
     # Defaults to 1.0 (anchored) when accelerating; a non-positive radius
     # disables the trust region (unguarded accelerator, for testing only).
-    trust_radius = getattr(p, "tpi_trust_radius", 1.0)
+    trust_radius = getattr(p, "TPI_trust_radius", 1.0)
     if trust_radius is not None and trust_radius <= 0:
         trust_radius = None
-    trust_radius_min = getattr(p, "tpi_trust_radius_min", 0.1)
-    trust_radius_max = getattr(p, "tpi_trust_radius_max", 10.0)
+    trust_radius_min = getattr(p, "TPI_trust_radius_min", 0.1)
+    trust_radius_max = getattr(p, "TPI_trust_radius_max", 10.0)
     prev_accel_dist = np.inf
 
     # Before scattering, temporarily remove unpicklable schema objects
@@ -1388,8 +1388,9 @@ def run_TPI(p, client=None):
 
         # update vars for next iteration
         if outer_updater is None:
-            # "picard": the historical damped fixed-point step, unchanged, so
-            # the default behavior (and golden outputs) is preserved exactly.
+            # "picard": the historical damped functional-iteration step,
+            # unchanged, so the default behavior (and golden outputs) is
+            # preserved exactly.
             w[: p.T] = utils.convex_combo(wnew[: p.T], w[: p.T], p.nu)
             r[: p.T] = utils.convex_combo(rnew[: p.T], r[: p.T], p.nu)
             r_p[: p.T] = utils.convex_combo(r_p_new[: p.T], r_p[: p.T], p.nu)
@@ -1412,8 +1413,7 @@ def run_TPI(p, client=None):
             ]
             if not p.baseline_spending:
                 blocks.append((TR, TR_new))
-            x = np.concatenate([old[: p.T].ravel() for old, _ in blocks])
-            gx = np.concatenate([imp[: p.T].ravel() for _, imp in blocks])
+            x, gx = solvers.pack_outer_vars(blocks, p.T)
             # True fixed-point residual (implied vs the PRE-update guess). The
             # post-update TPIdist below is spuriously ~0 for steps that set
             # x_next ~= gx (e.g. Anderson's undamped first step), so it is
@@ -1456,11 +1456,7 @@ def run_TPI(p, client=None):
                 max_dev = trust_radius * float(np.linalg.norm(gx_damped - x))
                 if dev_norm > max_dev > 0.0:
                     x_next = gx_damped + dev * (max_dev / dev_norm)
-            off = 0
-            for old, _ in blocks:
-                seg = old[: p.T]
-                old[: p.T] = x_next[off : off + seg.size].reshape(seg.shape)
-                off += seg.size
+            solvers.unpack_outer_vars(x_next, blocks, p.T)
         # Auxiliaries (unchanged): government rate, debt, and the household
         # policy warm-starts stay on the damped update.
         r_gov[: p.T] = utils.convex_combo(r_gov_new[: p.T], r_gov[: p.T], p.nu)
@@ -1503,8 +1499,9 @@ def run_TPI(p, client=None):
             + list(utils.pct_diff_func(TR_new[: p.T], TR[: p.T]))
         ).max()
         if outer_updater is not None:
-            # accelerated methods: use the true residual (see accel_dist),
-            # not the post-update distance which can be spuriously ~0.
+            # accelerated methods: use the true residual accel_dist, computed
+            # above from the pre-update guess, because the post-update
+            # distance can be spuriously ~0 for accelerated steps.
             TPIdist = accel_dist
 
         TPIdist_vec[TPIiter] = TPIdist

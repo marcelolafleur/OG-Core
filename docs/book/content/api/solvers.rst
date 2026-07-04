@@ -12,7 +12,6 @@ ogcore.solvers
 
 .. autoclass:: AndersonAccelerator
   :members: update, reset
-  :inherited-members:
 
 .. automodule:: ogcore.solvers
-  :members: make_outer_updater
+  :members: make_outer_updater, pack_outer_vars, unpack_outer_vars

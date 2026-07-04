@@ -4592,7 +4592,7 @@
     },
     "TPI_outer_method": {
         "title": "Update rule for the TPI outer (price/aggregate) loop",
-        "description": "Update rule for the transition-path outer loop. 'picard' (default) is the historical damped fixed-point step x <- (1-nu) x + nu G(x), which leaves model solutions unchanged. 'anderson' uses limited-memory Anderson acceleration on the residual history to take larger, better-directed steps, guarded by a trust region anchored to the damped point (tpi_trust_radius).",
+        "description": "Update rule for the transition-path outer loop. 'picard' (default) is the model's historical damped functional iteration x <- (1-nu) x + nu G(x) (see nu), which leaves model solutions unchanged. 'anderson' uses limited-memory Anderson acceleration on the residual history to take larger, better-directed steps, guarded by a trust region anchored to the damped point (TPI_trust_radius).",
         "short_description": "TPI outer-loop update rule",
         "section_1": "Model Solution Parameters",
         "notes": "Opt-in solver acceleration. The default ('picard') reproduces the constant-nu behavior exactly.",
@@ -4611,7 +4611,7 @@
             }
         }
     },
-    "tpi_anderson_m": {
+    "TPI_anderson_m": {
         "title": "Anderson acceleration memory depth",
         "description": "Number of past iterate/residual differences retained by the Anderson accelerator when TPI_outer_method='anderson'. Ignored otherwise.",
         "short_description": "Anderson memory depth (m)",
@@ -4630,7 +4630,7 @@
             }
         }
     },
-    "tpi_anderson_beta": {
+    "TPI_anderson_beta": {
         "title": "Anderson acceleration mixing parameter",
         "description": "Mixing weight for the Anderson step when TPI_outer_method='anderson'. beta=1 is undamped; beta<1 adds damping for robustness far from the solution. Ignored otherwise.",
         "short_description": "Anderson mixing (beta)",
@@ -4649,9 +4649,9 @@
             }
         }
     },
-    "tpi_trust_radius": {
+    "TPI_trust_radius": {
         "title": "Trust radius for the anchored Anderson step",
-        "description": "Initial trust radius for the accelerated TPI step, as a multiple of the damped-Picard step length around the always-feasible damped point. Grown after an improving iteration and shrunk (with a reset) after a worsening one. A non-positive value disables the trust region (unguarded accelerator; not recommended). Ignored when TPI_outer_method='picard'.",
+        "description": "Initial trust radius for the accelerated TPI step, as a multiple of the damped functional-iteration step length around the always-feasible damped point. Grown after an improving iteration and shrunk (with a reset) after a worsening one. A non-positive value disables the trust region (unguarded accelerator; not recommended). Ignored when TPI_outer_method='picard'.",
         "short_description": "Anchored-Anderson trust radius",
         "section_1": "Model Solution Parameters",
         "notes": "",
