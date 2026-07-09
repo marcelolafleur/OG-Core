@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Fixed the Defined Benefits and Points System pension paths so they run
+  against a real `Specifications` object (Issues #1014 and #1075):
+  `p.retire` (an array since PR #433) was passed as the scalar `S_ret`
+  into the numba loops, the scalar `p.g_y` was indexed as an array inside
+  the loops, the scalar steady-state wage was indexed as a path, and the
+  time-varying 3-D `e` matrix (PR #895) was sliced as 2-D. The systems
+  use the steady-state retirement age and earnings profile for now; full
+  time variation remains open in Issue #1014. The same coercions are
+  applied to the NDC path, but the NDC system additionally requires
+  growth-rate settings (`ndc_growth_rate`, `dir_growth_rate`) that are
+  not yet parameters in `default_parameters.json`, so it still cannot
+  run against a real `Specifications` object.
+- Added regression tests that call `pension_amount` with a real
+  `Specifications` object per pension system (the existing tests
+  pre-scalarized the inputs and so never exercised the real interface)
+  and a local-marked steady-state solve test with the Defined Benefits
+  system.
+
 ## [0.16.4] - 2026-07-02 12:00:00
 
 ### Added

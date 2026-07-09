@@ -226,23 +226,33 @@ def DB_amount(w, e, n, j, p):
     equiv_periods = int(round((p.S / 80.0) * p.avg_earn_num_years)) - 1
     equiv_yr_contrib = int(round((p.S / 80.0) * p.yr_contrib)) - 1
     L_inc_avg_s = np.zeros(equiv_periods)
+    # Retirement age is potentially time varying (PR #433), but the DB
+    # system supports a single retirement age for now; use the
+    # steady-state value (see Issue #1014). g_y is a scalar parameter,
+    # but the numba loops index it, so pass it as a 1-element array.
+    S_ret = int(np.asarray(p.retire).flat[-1])
+    g_y_arr = np.atleast_1d(np.asarray(p.g_y, dtype=float)).ravel()
+    # In the steady state the wage is a scalar; the loops index it as a
+    # path, so broadcast it.
+    if np.ndim(w) == 0:
+        w = np.full(p.S, float(w))
 
     if n.shape[0] < p.S:
         per_rmn = n.shape[0]
         # TODO: think about how to handle setting w_preTP and n_preTP
-        # TODO: will need to update how the e matrix is handled here
-        # and else where to allow for it to be time varying
         w_S = np.append((p.w_preTP * np.ones(p.S))[:(-per_rmn)], w)
         n_S = np.append(p.n_preTP[:(-per_rmn), j], n)
 
         DB = np.zeros(p.S)
         DB = DB_1dim_loop(
             w_S,
-            p.e[:, j],
+            # e is time varying (PR #895); use the steady-state
+            # profile for now (see Issue #1014)
+            p.e[-1, :, j] if np.ndim(p.e) == 3 else p.e[:, j],
             n_S,
-            p.retire,
+            S_ret,
             p.S,
-            p.g_y,
+            g_y_arr,
             L_inc_avg_s,
             L_inc_avg,
             DB,
@@ -259,9 +269,9 @@ def DB_amount(w, e, n, j, p):
                 w,
                 e,
                 n,
-                p.retire,
+                S_ret,
                 p.S,
-                p.g_y,
+                g_y_arr,
                 L_inc_avg_s,
                 L_inc_avg,
                 DB,
@@ -277,9 +287,9 @@ def DB_amount(w, e, n, j, p):
                 w,
                 e,
                 n,
-                p.retire,
+                S_ret,
                 p.S,
-                p.g_y,
+                g_y_arr,
                 L_inc_avg_sj,
                 L_inc_avg,
                 DB,
@@ -315,6 +325,13 @@ def NDC_amount(w, e, n, r, Y, j, p):
     """
     g_ndc_amount = g_ndc(r, Y, p)
     delta_ret_amount = delta_ret(r, Y, p)
+    # Single retirement age for now (see Issue #1014); g_y is a scalar
+    # but the numba loops index it; the steady-state wage is a scalar
+    # but the loops index it as a path.
+    S_ret = int(np.asarray(p.retire).flat[-1])
+    g_y_arr = np.atleast_1d(np.asarray(p.g_y, dtype=float)).ravel()
+    if np.ndim(w) == 0:
+        w = np.full(p.S, float(w))
 
     if n.shape[0] < p.S:
         per_rmn = n.shape[0]
@@ -322,15 +339,16 @@ def NDC_amount(w, e, n, r, Y, j, p):
         w_S = np.append((p.w_preTP * np.ones(p.S))[:(-per_rmn)], w)
         n_S = np.append(p.n_preTP[:(-per_rmn), j], n)
 
-        NDC_s = np.zeros(p.retire)
+        NDC_s = np.zeros(S_ret)
         NDC = np.zeros(p.S)
         NDC = NDC_1dim_loop(
             w_S,
-            p.e[:, j],
+            # steady-state earnings profile for now (see Issue #1014)
+            p.e[-1, :, j] if np.ndim(p.e) == 3 else p.e[:, j],
             n_S,
-            p.retire,
+            S_ret,
             p.S,
-            p.g_y,
+            g_y_arr,
             p.tau_p,
             g_ndc_amount,
             delta_ret_amount,
@@ -341,15 +359,15 @@ def NDC_amount(w, e, n, r, Y, j, p):
 
     else:
         if np.ndim(n) == 1:
-            NDC_s = np.zeros(p.retire)
+            NDC_s = np.zeros(S_ret)
             NDC = np.zeros(p.S)
             NDC = NDC_1dim_loop(
                 w,
                 e,
                 n,
-                p.retire,
+                S_ret,
                 p.S,
-                p.g_y,
+                g_y_arr,
                 p.tau_p,
                 g_ndc_amount,
                 delta_ret_amount,
@@ -357,15 +375,15 @@ def NDC_amount(w, e, n, r, Y, j, p):
                 NDC,
             )
         elif np.ndim(n) == 2:
-            NDC_sj = np.zeros((p.retire, p.J))
+            NDC_sj = np.zeros((S_ret, p.J))
             NDC = np.zeros((p.S, p.J))
             NDC = NDC_2dim_loop(
                 w,
                 e,
                 n,
-                p.retire,
+                S_ret,
                 p.S,
-                p.g_y,
+                g_y_arr,
                 p.tau_p,
                 g_ndc_amount,
                 delta_ret_amount,
@@ -397,19 +415,28 @@ def PS_amount(w, e, n, j, factor, p):
         PS (Numpy array): pension amount for each household
     """
 
+    # Single retirement age for now (see Issues #1014 and #1075); g_y is
+    # a scalar but the numba loops index it; the steady-state wage is a
+    # scalar but the loops index it as a path.
+    S_ret = int(np.asarray(p.retire).flat[-1])
+    g_y_arr = np.atleast_1d(np.asarray(p.g_y, dtype=float)).ravel()
+    if np.ndim(w) == 0:
+        w = np.full(p.S, float(w))
+
     if n.shape[0] < p.S:
         per_rmn = n.shape[0]
         w_S = np.append((p.w_preTP * np.ones(p.S))[:(-per_rmn)], w)
         n_S = np.append(p.n_preTP[:(-per_rmn), j], n)
-        L_inc_avg_s = np.zeros(p.retire)
+        L_inc_avg_s = np.zeros(S_ret)
         PS = np.zeros(p.S)
         PS = PS_1dim_loop(
             w_S,
-            p.e[:, j],
+            # steady-state earnings profile for now (see Issue #1014)
+            p.e[-1, :, j] if np.ndim(p.e) == 3 else p.e[:, j],
             n_S,
-            p.retire,
+            S_ret,
             p.S,
-            p.g_y,
+            g_y_arr,
             p.vpoint,
             factor,
             L_inc_avg_s,
@@ -419,15 +446,15 @@ def PS_amount(w, e, n, j, factor, p):
 
     else:
         if np.ndim(n) == 1:
-            L_inc_avg_s = np.zeros(p.retire)
+            L_inc_avg_s = np.zeros(S_ret)
             PS = np.zeros(p.S)
             PS = PS_1dim_loop(
                 w,
                 e,
                 n,
-                p.retire,
+                S_ret,
                 p.S,
-                p.g_y,
+                g_y_arr,
                 p.vpoint,
                 factor,
                 L_inc_avg_s,
@@ -435,16 +462,16 @@ def PS_amount(w, e, n, j, factor, p):
             )
 
         elif np.ndim(n) == 2:
-            L_inc_avg_sj = np.zeros((p.retire, p.J))
+            L_inc_avg_sj = np.zeros((S_ret, p.J))
             PS = np.zeros((p.S, p.J))
             PS = PS_2dim_loop(
                 w,
                 e,
                 n,
-                p.retire,
+                S_ret,
                 p.S,
                 p.J,
-                p.g_y,
+                g_y_arr,
                 p.vpoint,
                 factor,
                 L_inc_avg_sj,
@@ -513,9 +540,11 @@ def deriv_NDC(r, w, e, Y, per_rmn, p):
         d_theta (Numpy array): change in NDC pension benefits for
             another unit of labor supply
     """
+    # Single retirement age for now (see Issue #1014)
+    S_ret = int(np.asarray(p.retire).flat[-1])
     if per_rmn == 1:
         d_theta = 0
-    elif per_rmn < (p.S - p.retire + 1):
+    elif per_rmn < (p.S - S_ret + 1):
         d_theta = np.zeros(per_rmn)
     else:
         d_theta_empty = np.zeros(per_rmn)
@@ -526,7 +555,7 @@ def deriv_NDC(r, w, e, Y, per_rmn, p):
             e,
             per_rmn,
             p.S,
-            p.retire,
+            S_ret,
             p.tau_p,
             g_ndc_amount,
             delta_ret_amount,
@@ -561,14 +590,16 @@ def deriv_DB(w, e, per_rmn, p):
     """
     equiv_periods = int(round((p.S / 80.0) * p.avg_earn_num_years)) - 1
     equiv_yr_contrib = int(round((p.S / 80.0) * p.yr_contrib)) - 1
-    if per_rmn < (p.S - p.retire + 1):
+    # Single retirement age for now (see Issue #1014)
+    S_ret = int(np.asarray(p.retire).flat[-1])
+    if per_rmn < (p.S - S_ret + 1):
         d_theta = np.zeros(p.S)
     else:
         d_theta = deriv_DB_loop(
             w,
             e,
             p.S,
-            p.retire,
+            S_ret,
             per_rmn,
             equiv_periods,
             p.alpha_db,
@@ -602,12 +633,14 @@ def deriv_PS(w, e, per_rmn, factor, p):
 
     """
 
-    if per_rmn < (p.S - p.retire + 1):
+    # Single retirement age for now (see Issue #1014)
+    S_ret = int(np.asarray(p.retire).flat[-1])
+    if per_rmn < (p.S - S_ret + 1):
         d_theta = np.zeros(p.S)
     else:
         d_theta_empty = np.zeros(p.S)
         d_theta = deriv_PS_loop(
-            w, e, p.S, p.retire, per_rmn, d_theta_empty, p.vpoint, factor
+            w, e, p.S, S_ret, per_rmn, d_theta_empty, p.vpoint, factor
         )
         d_theta = d_theta[-per_rmn:]
 
@@ -718,10 +751,12 @@ def delta_ret(r, Y, p):
 
     """
     surv_rates = 1 - p.mort_rates_SS
-    dir_delta_s_empty = np.zeros(p.S - p.retire + 1)
+    # Single retirement age for now (see Issue #1014)
+    S_ret = int(np.asarray(p.retire).flat[-1])
+    dir_delta_s_empty = np.zeros(p.S - S_ret + 1)
     g_dir_value = g_dir(r, Y, p.g_y, p.g_n, p.dir_growth_rate)
     dir_delta = delta_ret_loop(
-        p.S, p.retire, surv_rates, g_dir_value, dir_delta_s_empty
+        p.S, S_ret, surv_rates, g_dir_value, dir_delta_s_empty
     )
     delta_ret = 1 / (dir_delta + p.indR - p.k_ret)
 
