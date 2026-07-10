@@ -21,11 +21,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   growth-rate settings (`ndc_growth_rate`, `dir_growth_rate`) that are
   not yet parameters in `default_parameters.json`, so it still cannot
   run against a real `Specifications` object.
+- Wired the pre-time-path inputs the DB/NDC/PS benefit formulas need
+  into the TPI: labor supplied before the time path begins comes from
+  the model's initial condition (the same baseline object that
+  initializes wealth), and pre-time-path wages are anchored to the
+  period-0 wage of the current path. Added the full time-path (T x S x J)
+  evaluation of Defined Benefits amounts (`DB_3dim_loop`) used when the
+  TPI computes aggregate revenues, built from each cohort's own wage and
+  labor history so aggregates are consistent with household behavior.
+  With these changes a country model using the Defined Benefits system
+  solves both the steady state and the transition path.
 - Added regression tests that call `pension_amount` with a real
   `Specifications` object per pension system (the existing tests
   pre-scalarized the inputs and so never exercised the real interface)
   and a local-marked steady-state solve test with the Defined Benefits
-  system.
+  system. See PR [#1167](https://github.com/PSLmodels/OG-Core/pull/1167).
 
 ## [0.16.4] - 2026-07-02 12:00:00
 

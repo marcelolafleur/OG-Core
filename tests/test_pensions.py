@@ -817,9 +817,9 @@ p2.tau_p = 0.3
 p2.k_ret = 0.4615
 p2.mort_rates_SS = np.array([0.01, 0.05, 0.3, 0.4, 1])
 p2.e = e
-NDC_expected2 = np.array([0, 0.25185784, 0.24441432])
-# TODO: why move from numbers below to those above ?  Diff in numpy rounding??
-# NDC_expected2 = np.array([0, 0.251721214, 0.244281728])
+# Pre-time-path wages are anchored to the period-0 wage of the passed
+# path (w[0] = 1.1), not the old w_preTP attribute.
+NDC_expected2 = np.array([0, 0.25705613, 0.24945897])
 args2 = (w, e, n, r, None, j, p2)
 
 test_data = [(args1, NDC_expected1), (args2, NDC_expected2)]
@@ -935,7 +935,8 @@ p2.n_preTP = np.array(
     ]
 )
 p2.e = e2
-PS_expected2 = np.array([0, 0, 0.003585952, 0.003479971, 0.003377123])
+# Pre-time-path wages anchored to the period-0 wage (w2[0] = 1.21)
+PS_expected2 = np.array([0, 0, 0.003852672, 0.003738809, 0.00362831])
 args2 = (w2, e2, n2, j, factor, p2)
 
 test_data = [(args1, PS_expected1), (args2, PS_expected2)]
