@@ -447,7 +447,7 @@ def PS_amount(w, e, n, j, factor, p):
         PS (Numpy array): pension amount for each household
     """
 
-    # Single retirement age for now (see Issues #1014 and #1075); g_y is
+    # Single retirement age for now (see Issue #1014); g_y is
     # a scalar but the numba loops index it; the steady-state wage is a
     # scalar but the loops index it as a path.
     S_ret = int(np.asarray(p.retire).flat[-1])
