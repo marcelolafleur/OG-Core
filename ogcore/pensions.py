@@ -253,8 +253,9 @@ def DB_amount(w, e, n, j, p):
         DB = np.zeros(p.S)
         DB = DB_1dim_loop(
             w_S,
-            # e is time varying (PR #895); use the steady-state
-            # profile for now (see Issue #1014)
+            # TODO: will need to update how the e matrix is handled
+            # here and elsewhere to allow for it to be time varying
+            # (see Issue #1014); use the steady-state profile for now
             p.e[-1, :, j] if np.ndim(p.e) == 3 else p.e[:, j],
             n_S,
             S_ret,

@@ -818,7 +818,11 @@ p2.k_ret = 0.4615
 p2.mort_rates_SS = np.array([0.01, 0.05, 0.3, 0.4, 1])
 p2.e = e
 # Pre-time-path wages are anchored to the period-0 wage of the passed
-# path (w[0] = 1.1), not the old w_preTP attribute.
+# path (w[0] = 1.1), not the old w_preTP attribute. Earlier expected
+# values under the old convention, kept for reference:
+# NDC_expected2 = np.array([0, 0.25185784, 0.24441432])
+# TODO: why move from numbers below to those above ?  Diff in numpy rounding??
+# NDC_expected2 = np.array([0, 0.251721214, 0.244281728])
 NDC_expected2 = np.array([0, 0.25705613, 0.24945897])
 args2 = (w, e, n, r, None, j, p2)
 
