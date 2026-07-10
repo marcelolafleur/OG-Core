@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   applied to the NDC path, but the NDC system additionally requires
   growth-rate settings (`ndc_growth_rate`, `dir_growth_rate`) that are
   not yet parameters in `default_parameters.json`, so it still cannot
-  run against a real `Specifications` object.
+  run against a real `Specifications` object (see Issue #1169).
 - Wired the pre-time-path inputs the DB/NDC/PS benefit formulas need
   into the TPI: labor supplied before the time path begins comes from
   the model's initial condition (the same baseline object that
