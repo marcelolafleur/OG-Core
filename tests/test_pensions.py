@@ -980,7 +980,7 @@ def test_get_PS(args, PS_expected):
 # The Notional Defined Contribution system is excluded above: its
 # growth-rate settings (ndc_growth_rate, dir_growth_rate) are not yet
 # parameters in default_parameters.json, so it cannot run against a real
-# Specifications object at all.  See Issue #1014.
+# Specifications object at all.  See Issue #1169.
 def test_pension_amount_with_real_specifications(system, updates):
     """
     pension_amount must accept a real Specifications object in the SS:
