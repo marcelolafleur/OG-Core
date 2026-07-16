@@ -1123,8 +1123,8 @@ def DB_3dim_loop(
     period-0 wage (trend growth is handled by the de-trending in the
     benefit formula) and the model's initial labor supply, so this
     reproduces exactly what the per-cohort household solves compute and
-    household behavior and aggregates are consistent. Not numba-jitted
-    because it relies on fancy indexing; the inner work is vectorized.
+    household behavior and aggregates are consistent. The inner work is
+    vectorized rather than looped.
 
     Args:
         w_path (Numpy array): real wage rate path, length T

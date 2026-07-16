@@ -5,11 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.17.0] - 2026-07-16 12:00:00
 
-### Fixed
+### Bug Fixes
 
-- Fixed the Defined Benefits and Points System pension paths so they run
+- Fixes the Defined Benefits and Points System pension paths so they run
   against a real `Specifications` object (Issues #1014 and #1075):
   `p.retire` (an array since PR #433) was passed as the scalar `S_ret`
   into the numba loops, the scalar `p.g_y` was indexed as an array inside
@@ -21,21 +21,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   growth-rate settings (`ndc_growth_rate`, `dir_growth_rate`) that are
   not yet parameters in `default_parameters.json`, so it still cannot
   run against a real `Specifications` object (see Issue #1169).
-- Wired the pre-time-path inputs the DB/NDC/PS benefit formulas need
+- Wires the pre-time-path inputs the DB/NDC/PS benefit formulas need
   into the TPI: labor supplied before the time path begins comes from
   the model's initial condition (the same baseline object that
   initializes wealth), and pre-time-path wages are anchored to the
-  period-0 wage of the current path. Added the full time-path (T x S x J)
+  period-0 wage of the current path. Adds the full time-path (T x S x J)
   evaluation of Defined Benefits amounts (`DB_3dim_loop`) used when the
   TPI computes aggregate revenues, built from each cohort's own wage and
   labor history so aggregates are consistent with household behavior.
   With these changes a country model using the Defined Benefits system
   solves both the steady state and the transition path.
-- Added regression tests that call `pension_amount` with a real
+- Adds regression tests that call `pension_amount` with a real
   `Specifications` object per pension system (the existing tests
   pre-scalarized the inputs and so never exercised the real interface)
   and a local-marked steady-state solve test with the Defined Benefits
   system. See PR [#1167](https://github.com/PSLmodels/OG-Core/pull/1167).
+- Fixes the tax-liability revenue calculation using the first year's tax
+  noncompliance and filer rates for every period, even when those rates
+  are set to vary over time (Issue #1168): households responded to the
+  changing rates while government revenue, the budget, and debt stayed on
+  the first-year values. `income_tax_liab` now slices the rates over the
+  transition path. See PR [#1174](https://github.com/PSLmodels/OG-Core/pull/1174).
+- Fixes the steady-state `etr_ss` and `mtry_ss` diagnostics using the
+  labor-income tax noncompliance rate in place of the capital-income rate
+  (`capital_noncompliance_rate_2D` in `SS.py`, Issue #1170). This affects
+  only the post-solve SS diagnostics -- the solution itself already used
+  the correct rates -- and is a no-op when the two rates are equal (the
+  default). See PR [#1171](https://github.com/PSLmodels/OG-Core/pull/1171).
+- Fixes `alpha_FA` (direct foreign aid, added in 0.16.0) not being
+  extended over the model time path: it was never registered in
+  `tp_param_list`, so a multi-year path stayed short and broke the
+  transition solve. It now extends to `T + S` with the last value carried
+  forward, like `alpha_G`/`alpha_T`/`alpha_I`. See PR [#1166](https://github.com/PSLmodels/OG-Core/pull/1166).
 
 ## [0.16.4] - 2026-07-02 12:00:00
 
