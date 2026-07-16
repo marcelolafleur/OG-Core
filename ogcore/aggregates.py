@@ -40,7 +40,7 @@ def get_L(n, p, method):
         L_presum = p.e[-1, :, :] * p.omega_SS * n
         L = L_presum.sum()
     elif method == "TPI":
-        L_presum = (n * (p.e * p.omega[: p.T, :, :]))
+        L_presum = n * (p.e * p.omega[: p.T, :, :])
         L = L_presum.sum(1).sum(1)
     return L
 
@@ -67,28 +67,28 @@ def get_I(b_splus1, K_p1, K, p, method):
 
     """
     if method == "SS":
-        omega_extended = np.append(p.omega_SS[1:, :], [0.0], axis=0)
-        imm_extended = np.append(p.imm_rates[-1, 1:, :], [0.0], axis=0)
-        part2 = (
-            (
-                b_splus1 * omega_extended * imm_extended
-            ).sum()
-        ) / (1 + p.g_n_ss)
+        omega_extended = np.append(
+            p.omega_SS[1:, :], np.zeros((1, p.J)), axis=0
+        )
+        imm_extended = np.append(
+            p.imm_rates[-1, 1:, :], np.zeros((1, p.J)), axis=0
+        )
+        part2 = ((b_splus1 * omega_extended * imm_extended).sum()) / (
+            1 + p.g_n_ss
+        )
         aggI = (1 + p.g_n_ss) * np.exp(p.g_y) * (K_p1 - part2) - (
             1.0 - p.delta
         ) * K
     elif method == "TPI":
-        omega_shift = np.append(p.omega[: p.T, 1:, :], np.zeros((p.T, 1, p.J)), axis=1)
+        omega_shift = np.append(
+            p.omega[: p.T, 1:, :], np.zeros((p.T, 1, p.J)), axis=1
+        )
         imm_shift = np.append(
             p.imm_rates[: p.T, 1:, :], np.zeros((p.T, 1, p.J)), axis=1
         )
-        part2 = (
-            (
-                b_splus1 * imm_shift * omega_shift
-            )
-            .sum(1)
-            .sum(1)
-        ) / (1 + np.squeeze(np.hstack((p.g_n[: p.T - 1], p.g_n_ss))))
+        part2 = ((b_splus1 * imm_shift * omega_shift).sum(1).sum(1)) / (
+            1 + np.squeeze(np.hstack((p.g_n[: p.T - 1], p.g_n_ss)))
+        )
         aggI = (
             1 + np.squeeze(np.hstack((p.g_n[: p.T - 1], p.g_n_ss)))
         ) * np.exp(p.g_y) * (K_p1 - part2) - (1.0 - p.delta) * K
@@ -123,13 +123,21 @@ def get_B(b, p, method, preTP):
     if method == "SS":
         if preTP:
             part1 = b * p.omega_S_preTP
-            omega_extended = np.append(p.omega_S_preTP[1:, :], [0.0], axis=0)
-            imm_extended = np.append(p.imm_rates_preTP[1:, :], [0.0], axis=0)
+            omega_extended = np.append(
+                p.omega_S_preTP[1:, :], np.zeros((1, p.J)), axis=0
+            )
+            imm_extended = np.append(
+                p.imm_rates_preTP[1:, :], np.zeros((1, p.J)), axis=0
+            )
             pop_growth_rate = p.g_n_preTP
         else:
             part1 = b * p.omega_SS
-            omega_extended = np.append(p.omega_SS[1:, :], [0.0], axis=0)
-            imm_extended = np.append(p.imm_rates[-1, 1:, :], [0.0], axis=0)
+            omega_extended = np.append(
+                p.omega_SS[1:, :], np.zeros((1, p.J)), axis=0
+            )
+            imm_extended = np.append(
+                p.imm_rates[-1, 1:, :], np.zeros((1, p.J)), axis=0
+            )
             pop_growth_rate = p.g_n_ss
         part2 = b * omega_extended * imm_extended
         B_presum = part1 + part2
@@ -137,7 +145,9 @@ def get_B(b, p, method, preTP):
         B /= 1.0 + pop_growth_rate
     elif method == "TPI":
         part1 = b * p.omega[: p.T, :, :]
-        omega_shift = np.append(p.omega[: p.T, 1:, :], np.zeros((p.T, 1, p.J)), axis=1)
+        omega_shift = np.append(
+            p.omega[: p.T, 1:, :], np.zeros((p.T, 1, p.J)), axis=1
+        )
         imm_shift = np.append(
             p.imm_rates[: p.T, 1:, :], np.zeros((p.T, 1, p.J)), axis=1
         )
@@ -183,21 +193,23 @@ def get_BQ(r, b_splus1, j, p, method, preTP):
             pop_growth_rate = p.g_n_ss
             rho = p.rho[-1, :]
         if j is not None:
-            BQ_presum = omega * rho * b_splus1
+            BQ_presum = omega[:, j] * rho[:, j] * b_splus1
         else:
             BQ_presum = omega * rho * b_splus1
         BQ = BQ_presum.sum(0)
         BQ *= (1.0 + r) / (1.0 + pop_growth_rate)
     elif method == "TPI":
         pop = np.append(
-            p.omega_S_preTP.reshape(1, p.S), p.omega[: p.T - 1, :], axis=0
+            p.omega_S_preTP.reshape(1, p.S, p.J),
+            p.omega[: p.T - 1, :, :],
+            axis=0,
         )
         rho = np.append(
-            p.rho_preTP.reshape(1, p.S), p.rho[: p.T - 1, :], axis=0
+            p.rho_preTP.reshape(1, p.S, p.J), p.rho[: p.T - 1, :, :], axis=0
         )
 
         if j is not None:
-            BQ_presum = b_splus1 * pop[:, j] * rho[:, j]
+            BQ_presum = b_splus1 * pop[:, :, j] * rho[:, :, j]
             BQ = BQ_presum.sum(1)
             BQ *= (1.0 + r) / (1.0 + np.append(p.g_n_preTP, p.g_n[: p.T - 1]))
         else:
@@ -289,13 +301,9 @@ def get_C(c, p, method):
     """
 
     if method == "SS":
-        aggC = (
-            (c * p.omega_SS).sum(-1).sum(-1)
-        )
+        aggC = (c * p.omega_SS).sum(-1).sum(-1)
     elif method == "TPI":
-        aggC = (
-            (c * p.omega[: p.T, :, :]).sum(-1).sum(-1)
-        )
+        aggC = (c * p.omega[: p.T, :, :]).sum(-1).sum(-1)
     return aggC
 
 

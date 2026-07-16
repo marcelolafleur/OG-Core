@@ -515,8 +515,7 @@ def inner_loop(outer_loop_vars, p, client):
     # (S, J) nssmat broadcasts into an (S, S) outer product, scaling the
     # income sum by S. p.e[-1, :, :] is already (S, J).
     average_income_model = (
-        (new_r_p * b_s + new_w * p.e[-1, :, :] * nssmat)
-        * p.omega_SS
+        (new_r_p * b_s + new_w * p.e[-1, :, :] * nssmat) * p.omega_SS
     ).sum()
     if p.baseline:
         new_factor = p.mean_income_data / average_income_model

@@ -900,10 +900,10 @@ def expand_pop_obj_J(
     Expand aggregate demographic objects to age x income-group objects.
 
     The aggregate population path and rates are left unchanged. If
-    income_percentiles is None and no income-specific inputs are provided, the
-    original aggregate objects are returned. Otherwise, income_percentiles gives
-    the initial population distribution across J for every age and the income
-    shares of newborns in every period.
+    income_percentiles is None and no income-specific inputs are
+    provided, the original aggregate objects are returned. Otherwise,
+    income_percentiles gives the initial population distribution across
+    J for every age and the income shares of newborns in every period.
 
     Args:
         omega_path_lev (Numpy array): T+S x E+S aggregate population levels.
@@ -926,7 +926,8 @@ def expand_pop_obj_J(
         fert_gradient (array_like): log-odds fertility slopes by age.
         mort_gradient (array_like): log-odds mortality slopes by age.
         infmort_gradient (array_like): log-odds infant mortality slopes.
-        imm_pctiles (array_like): immigrant income shares by period, age, and J.
+        imm_pctiles (array_like): immigrant income shares by period,
+        age, and J.
 
     Returns:
         dict: demographic objects with the same keys needed by get_pop_objs.
@@ -938,7 +939,10 @@ def expand_pop_obj_J(
         infmort_gradient,
         imm_pctiles,
     )
-    assert income_percentiles is not None, "income_percentiles must be provided when using income-specific inputs."
+    assert income_percentiles is not None, (
+        "income_percentiles must be provided when using "
+        + "income-specific inputs."
+    )
     income_shares, pct_midpoints = _income_shares_and_midpoints(
         income_percentiles
     )
@@ -951,10 +955,24 @@ def expand_pop_obj_J(
     if all_income_inputs_none:
         print("In the all are none case.")
         return {
-            "omega_path_S": omega_path_S.reshape(omega_path_S.shape[0], omega_path_S.shape[1], 1) * income_shares.reshape(1, 1, J),
-            "omega_SS": omega_SS.reshape(omega_SS.shape[0], 1) * income_shares.reshape(1, J),
-            "mort_rates_S": np.tile(mort_rates_S.reshape(mort_rates_S.shape[0], mort_rates_S.shape[1], 1), (1, 1, J)),
-            "imm_rates_mat": np.tile(imm_rates_mat.reshape(imm_rates_mat.shape[0], imm_rates_mat.shape[1], 1), (1, 1, J)),
+            "omega_path_S": omega_path_S.reshape(
+                omega_path_S.shape[0], omega_path_S.shape[1], 1
+            )
+            * income_shares.reshape(1, 1, J),
+            "omega_SS": omega_SS.reshape(omega_SS.shape[0], 1)
+            * income_shares.reshape(1, J),
+            "mort_rates_S": np.tile(
+                mort_rates_S.reshape(
+                    mort_rates_S.shape[0], mort_rates_S.shape[1], 1
+                ),
+                (1, 1, J),
+            ),
+            "imm_rates_mat": np.tile(
+                imm_rates_mat.reshape(
+                    imm_rates_mat.shape[0], imm_rates_mat.shape[1], 1
+                ),
+                (1, 1, J),
+            ),
         }
 
     fert_slopes = _format_age_gradient(
@@ -1114,14 +1132,17 @@ def get_pop_objs(
         pop_dist (array_like): user provided population distribution,
             dimensions are T0+1 x E+S
         fert_gradient (array_like): user provided fertility rate gradient,
-            dimensions are S, represents the log-odds slope in the fertility rate
+            dimensions are S, represents the log-odds slope in the
+            fertility rate
             per percentile of the lifetime income distribution.
         mort_gradient (array_like): user provided mortality rate gradient,
-            dimensions are S, represents the log-odds slope in the mortality rate
+            dimensions are S, represents the log-odds slope in the
+            mortality rate
             per percentile of the lifetime income distribution.
-        infmort_gradient (array_like): user provided infant mortality rate gradient,
-            dimensions are S, represents the log-odds slope in the infant mortality rate
-            per percentile of the lifetime income distribution.
+        infmort_gradient (array_like): user provided infant mortality
+            rate gradient, dimensions are S, represents the log-odds
+            slope in the infant mortality rate per percentile of the
+            lifetime income distribution.
         imm_pctiles (array_like): user provided lifetime income distribution
             for new immigrants, shape is num_per x S x J, where num_per
             is the number of years between initial and final_data_year
