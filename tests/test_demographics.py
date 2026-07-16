@@ -78,10 +78,6 @@ def test_get_pop_objs():
         final_data_year=start_year,
         GraphDiag=False,
     )
-    print("Omega_SS shape:", pop_dict["omega_SS"].shape)
-    print("Omega last period shape:", pop_dict["omega"][-1, :, :].shape)
-    print("Some values from Omega_SS:", pop_dict["omega_SS"][:5, :5])
-    print("Some values from Omega last period:", pop_dict["omega"][-1, :5, :5])
     assert np.allclose(pop_dict["omega_SS"], pop_dict["omega"][-1, :, :])
 
 
