@@ -241,15 +241,16 @@ class Specifications(paramtools.Parameters):
             )
             setattr(self, item, param_out)
         # Deal with parameters that vary across age and over time
-        tp_param_list4 = [
-            "rho",
-        ]
-        for item in tp_param_list4:
-            param_in = getattr(self, item)
-            param_out = extrapolate_array(
-                param_in, dims=(self.T + self.S, self.S), item=item
-            )
-            setattr(self, item, param_out)
+        # None at the moment - moved to vary by J also
+        # tp_param_list4 = [
+        #     "rho",
+        # ]
+        # for item in tp_param_list4:
+        #     param_in = getattr(self, item)
+        #     param_out = extrapolate_array(
+        #         param_in, dims=(self.T + self.S, self.S), item=item
+        #     )
+        #     setattr(self, item, param_out)
         # Deal with tax parameters that maybe age and time specific
         tax_params_to_TP = [
             "etr_params",
@@ -276,13 +277,7 @@ class Specifications(paramtools.Parameters):
         # Try to deal with size of eta and eta_RM. They may vary by S, J, T,
         # but want to allow user to enter one that varies by only S, S and J,
         # S and T, or T and S and J.
-        eta_params_to_TP = [
-            "eta",
-            "eta_RM",
-            "omega",
-            "rho",
-            "imm_rates"
-        ]
+        eta_params_to_TP = ["eta", "eta_RM", "omega", "rho", "imm_rates"]
         for item in eta_params_to_TP:
             param_in = getattr(self, item)
             param_out = extrapolate_array(
@@ -294,7 +289,7 @@ class Specifications(paramtools.Parameters):
             "omega_SS",
             "omega_S_preTP",
             "imm_rates_preTP",
-            "rho_preTP"
+            "rho_preTP",
         ]
         for item in demog_obj_to_SS:
             param_in = getattr(self, item)
