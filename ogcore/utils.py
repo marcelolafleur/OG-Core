@@ -469,9 +469,13 @@ class Inequality:
         self.dist = dist
         self.pop_weights = pop_weights
         self.ability_weights = ability_weights
-        weights = np.tile(
-            pop_weights.reshape(S, 1), (1, J)
-        ) * ability_weights.reshape(1, J)
+        if np.asarray(pop_weights).ndim == 2:
+            # pop_weights is already (S, J) joint distribution
+            weights = np.asarray(pop_weights)
+        else:
+            weights = np.tile(
+                pop_weights.reshape(S, 1), (1, J)
+            ) * ability_weights.reshape(1, J)
         flattened_dist = dist.flatten()
         flattened_weights = weights.flatten()
         idx = np.argsort(flattened_dist)
@@ -494,7 +498,11 @@ class Inequality:
             nu = np.cumsum(self.sort_dist * self.sort_weights)
         elif type == "age":
             flattened_dist = self.dist.sum(axis=1).flatten()
-            flattened_weights = self.pop_weights.flatten()
+            pw = np.asarray(self.pop_weights)
+            if pw.ndim == 2:
+                flattened_weights = pw.sum(axis=1).flatten()
+            else:
+                flattened_weights = pw.flatten()
             idx = np.argsort(flattened_dist)
             sort_dist = flattened_dist[idx]
             sort_weights = flattened_weights[idx] / flattened_weights.sum()
