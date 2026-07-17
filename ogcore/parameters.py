@@ -363,9 +363,7 @@ class Specifications(paramtools.Parameters):
             omega_SS_1d = surv_rate1 / surv_rate1.sum()  # (S,)
             # Expand to (S, J) joint distribution
             lambdas_arr = np.array(self.lambdas).reshape(1, self.J)
-            self.omega_SS = (
-                omega_SS_1d.reshape(self.S, 1) * lambdas_arr
-            )
+            self.omega_SS = omega_SS_1d.reshape(self.S, 1) * lambdas_arr
             self.imm_rates = np.zeros((self.T + self.S, self.S, self.J))
             self.omega = np.tile(
                 self.omega_SS.reshape(1, self.S, self.J),

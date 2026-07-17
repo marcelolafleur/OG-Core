@@ -667,15 +667,17 @@ def ability_bar_ss(
         reform_val = (reform_ss[var] * reform_params.omega_SS).sum(0)
     else:
         base_val = (
-            base_ss[var] * (
-                base_params.omega_SS.reshape(base_params.S, 1) *
-                base_params.lambdas.reshape(1, base_params.J)
+            base_ss[var]
+            * (
+                base_params.omega_SS.reshape(base_params.S, 1)
+                * base_params.lambdas.reshape(1, base_params.J)
             )
         ).sum(0)
         reform_val = (
-            reform_ss[var] * (
-                reform_params.omega_SS.reshape(reform_params.S, 1) *
-                reform_params.lambdas.reshape(1, reform_params.J)
+            reform_ss[var]
+            * (
+                reform_params.omega_SS.reshape(reform_params.S, 1)
+                * reform_params.lambdas.reshape(1, reform_params.J)
             )
         ).sum(0)
     var_to_plot = (reform_val - base_val) / base_val

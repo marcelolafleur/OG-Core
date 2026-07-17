@@ -95,7 +95,9 @@ def plot_mort_rates(
                 if p.omega.ndim == 3:
                     rho_t = (p.rho[t, :, :] * p.omega[t, :, :]).sum(axis=-1)
                 else:
-                    rho_t = (p.rho[t, :, :] * p.lambdas.reshape(1, 1, p.J)).sum(axis=-1)
+                    rho_t = (
+                        p.rho[t, :, :] * p.lambdas.reshape(1, 1, p.J)
+                    ).sum(axis=-1)
             else:
                 rho_t = p.rho[t, :]
             if survival_rates:

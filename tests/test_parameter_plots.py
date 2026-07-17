@@ -334,7 +334,11 @@ def test_plot_g_n_savefig(tmpdir):
 
 def test_plot_mort_rates_data():
     totpers = base_params.S - 1
-    mort_rates = (base_params.rho[-1, 1:, :] * base_params.omega[-1, 1:, :]).mean(axis=-1).reshape((1, totpers))
+    mort_rates = (
+        (base_params.rho[-1, 1:, :] * base_params.omega[-1, 1:, :])
+        .mean(axis=-1)
+        .reshape((1, totpers))
+    )
     fig = parameter_plots.plot_mort_rates_data(
         mort_rates,
         path=None,
@@ -345,7 +349,11 @@ def test_plot_mort_rates_data():
 
 def test_plot_mort_rates_data_save_fig(tmpdir):
     totpers = base_params.S - 1
-    mort_rates = (base_params.rho[-1, 1:, :] *  base_params.omega[-1, 1:, :]).mean(axis=-1).reshape((1, totpers))
+    mort_rates = (
+        (base_params.rho[-1, 1:, :] * base_params.omega[-1, 1:, :])
+        .mean(axis=-1)
+        .reshape((1, totpers))
+    )
     parameter_plots.plot_mort_rates_data(
         mort_rates,
         path=tmpdir,
