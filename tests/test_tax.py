@@ -928,8 +928,8 @@ p = Specifications()
 p.tax_func_type = "DEP"
 p.J = 1
 p.S = 3
-p.labor_income_tax_noncompliance_rate = np.zeros((p.T, p.S, p.J))
-p.capital_income_tax_noncompliance_rate = np.zeros((p.T, p.S, p.J))
+p.labor_income_tax_noncompliance_rate = np.zeros((p.T + p.S, p.J))
+p.capital_income_tax_noncompliance_rate = np.zeros((p.T + p.S, p.J))
 p.income_tax_filer = np.ones((p.T, p.J))
 p.wealth_tax_filer = np.ones((p.T, p.J))
 p.replacement_rate_adjust = np.ones((p.T, p.J))
@@ -945,8 +945,8 @@ p1 = copy.deepcopy(p)
 p2 = copy.deepcopy(p)
 p3 = copy.deepcopy(p)
 p3.T = 3
-p3.labor_income_tax_noncompliance_rate = np.zeros((p3.T, p3.S, p3.J))
-p3.capital_income_tax_noncompliance_rate = np.zeros((p3.T, p3.S, p3.J))
+p3.labor_income_tax_noncompliance_rate = np.zeros((p3.T + p3.S, p3.J))
+p3.capital_income_tax_noncompliance_rate = np.zeros((p3.T + p3.S, p3.J))
 p3.income_tax_filer = np.ones((p3.T, p3.J))
 p3.wealth_tax_filer = np.ones((p3.T, p3.J))
 p3.replacement_rate_adjust = np.ones((p3.T, p3.J))
@@ -955,8 +955,8 @@ p5 = copy.deepcopy(p)
 p5.e = np.array([[0.3, 0.2], [0.5, 0.4], [0.45, 0.3]])
 p5.J = 2
 p5.T = 3
-p5.labor_income_tax_noncompliance_rate = np.zeros((p5.T, p5.S, p5.J))
-p5.capital_income_tax_noncompliance_rate = np.zeros((p5.T, p5.S, p5.J))
+p5.labor_income_tax_noncompliance_rate = np.zeros((p5.T + p5.S, p5.J))
+p5.capital_income_tax_noncompliance_rate = np.zeros((p5.T + p5.S, p5.J))
 p5.income_tax_filer = np.ones((p5.T, p5.J))
 p5.wealth_tax_filer = np.ones((p5.T, p5.J))
 p5.replacement_rate_adjust = np.ones((p5.T, p5.J))
@@ -1794,6 +1794,108 @@ def test_net_taxes(
     )
 
     assert np.allclose(net_taxes, expected)
+
+
+def test_income_tax_liab_time_varying_noncompliance():
+    # Test that time variation in the income tax noncompliance rates
+    # and tax filer status flows through to tax liabilities along the
+    # transition path
+    p14 = copy.deepcopy(p13)
+    noncompliance_path = np.array([0.0, 0.05, 0.1])
+    filer_path = np.array([1.0, 1.0, 0.0])
+    p14.labor_income_tax_noncompliance_rate = np.tile(
+        np.reshape(
+            np.append(
+                noncompliance_path, np.ones(p14.S) * noncompliance_path[-1]
+            ),
+            (p14.T + p14.S, 1),
+        ),
+        (1, p14.J),
+    )
+    p14.capital_income_tax_noncompliance_rate = copy.deepcopy(
+        p14.labor_income_tax_noncompliance_rate
+    )
+    p14.income_tax_filer = np.tile(
+        np.reshape(
+            np.append(filer_path, np.ones(p14.S) * filer_path[-1]),
+            (p14.T + p14.S, 1),
+        ),
+        (1, p14.J),
+    )
+    tax_liab_path = tax.income_tax_liab(
+        r5, w5, b5, n5, factor, 0, None, "TPI", p5.e, etr_params5, p14
+    )
+    # In each period, tax liabilities along the path should match those
+    # computed with rates held constant at that period's values
+    for t in range(p14.T):
+        p_const = copy.deepcopy(p14)
+        p_const.labor_income_tax_noncompliance_rate = (
+            np.ones((p14.T + p14.S, p14.J)) * noncompliance_path[t]
+        )
+        p_const.capital_income_tax_noncompliance_rate = (
+            np.ones((p14.T + p14.S, p14.J)) * noncompliance_path[t]
+        )
+        p_const.income_tax_filer = (
+            np.ones((p14.T + p14.S, p14.J)) * filer_path[t]
+        )
+        tax_liab_const = tax.income_tax_liab(
+            r5, w5, b5, n5, factor, 0, None, "TPI", p5.e, etr_params5, p_const
+        )
+        assert np.allclose(tax_liab_path[t, :, :], tax_liab_const[t, :, :])
+
+
+def test_income_tax_liab_time_varying_noncompliance_j():
+    # Same test as above, but for tax liabilities of a single lifetime
+    # income group along the transition path
+    p_tv = copy.deepcopy(p_u)
+    noncompliance_path = np.array([0.0, 0.05, 0.1])
+    p_tv.labor_income_tax_noncompliance_rate = np.tile(
+        np.reshape(
+            np.append(
+                noncompliance_path, np.ones(p_tv.S) * noncompliance_path[-1]
+            ),
+            (p_tv.T + p_tv.S, 1),
+        ),
+        (1, p_tv.J),
+    )
+    p_tv.capital_income_tax_noncompliance_rate = copy.deepcopy(
+        p_tv.labor_income_tax_noncompliance_rate
+    )
+    tax_liab_path = tax.income_tax_liab(
+        r11,
+        w11,
+        b11[:, :, j11],
+        n11[:, :, j11],
+        factor_u,
+        0,
+        j11,
+        "TPI",
+        p_u.e[:, j11],
+        etr_params11,
+        p_tv,
+    )
+    for t in range(p_tv.T):
+        p_const = copy.deepcopy(p_tv)
+        p_const.labor_income_tax_noncompliance_rate = (
+            np.ones((p_tv.T + p_tv.S, p_tv.J)) * noncompliance_path[t]
+        )
+        p_const.capital_income_tax_noncompliance_rate = (
+            np.ones((p_tv.T + p_tv.S, p_tv.J)) * noncompliance_path[t]
+        )
+        tax_liab_const = tax.income_tax_liab(
+            r11,
+            w11,
+            b11[:, :, j11],
+            n11[:, :, j11],
+            factor_u,
+            0,
+            j11,
+            "TPI",
+            p_u.e[:, j11],
+            etr_params11,
+            p_const,
+        )
+        assert np.allclose(tax_liab_path[t, :], tax_liab_const[t, :])
 
 
 p = Specifications()

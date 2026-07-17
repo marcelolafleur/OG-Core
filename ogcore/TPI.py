@@ -164,6 +164,13 @@ def get_initial_SS_values(p):
     B0 = aggr.get_B(ss_baseline_vars["b_sp1"], p, "SS", True)
     initial_b = ss_baseline_vars["b_sp1"] * (ss_baseline_vars["B"] / B0)
     initial_n = ss_baseline_vars["n"]
+    # The DB/NDC/PS pension formulas need the labor supplied before the
+    # time path begins by cohorts alive at t=0. Use the model's initial
+    # labor condition (the same baseline object that initializes wealth);
+    # pre-time-path wages are anchored to the period-0 wage of the
+    # current path inside pensions.py. See Issue #1014 for a fully
+    # history-consistent treatment.
+    p.n_preTP = initial_n
 
     Ybaseline = None
     TRbaseline = None
