@@ -5,8 +5,8 @@ from ogcore import pensions
 from ogcore.parameters import Specifications
 
 p = Specifications()
-rho_vec = np.zeros((1, 4))
-rho_vec[0, -1] = 1.0
+rho_vec = np.zeros((1, 4, 1))
+rho_vec[0, -1, :] = 1.0
 new_param_values = {
     "S": 4,
     "rho": rho_vec.tolist(),
