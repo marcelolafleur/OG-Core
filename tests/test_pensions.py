@@ -10,6 +10,7 @@ rho_vec[0, -1, :] = 1.0
 new_param_values = {
     "S": 4,
     "rho": rho_vec.tolist(),
+    "rho_preTP": rho_vec[0, :, :].tolist(),
     "lambdas": [1.0],
     "labor_income_tax_noncompliance_rate": [[0.0]],
     "capital_income_tax_noncompliance_rate": [[0.0]],
@@ -21,6 +22,11 @@ new_param_values = {
     "chi_n": np.ones(4),
     "eta": (np.ones((4, 1)) / (4 * 1)),
     "e": np.ones((4, 1)),
+    "omega": (np.ones((1, 4, 1)) / 4).tolist(),
+    "omega_SS": (np.ones((4, 1)) / 4).tolist(),
+    "omega_S_preTP": (np.ones((4, 1)) / 4).tolist(),
+    "imm_rates": np.zeros((1, 4, 1)).tolist(),
+    "imm_rates_preTP": np.zeros((4, 1)).tolist(),
 }
 p.update_specifications(new_param_values)
 p.retire = [3, 3, 3, 3, 3, 3, 3, 3]
@@ -28,7 +34,8 @@ p1 = Specifications()
 p1.update_specifications(
     {
         "S": 4,
-        "rho": rho_vec.tolist(),
+        "rho": np.tile(rho_vec, (1, 1, 2)).tolist(),
+        "rho_preTP": np.tile(rho_vec[0, :, :], (1, 2)).tolist(),
         "lambdas": [0.5, 0.5],
         "labor_income_tax_noncompliance_rate": [[0.0]],
         "capital_income_tax_noncompliance_rate": [[0.0]],
@@ -40,6 +47,11 @@ p1.update_specifications(
         "chi_n": np.ones(4),
         "eta": (np.ones((4, 2)) / (4 * 2)),
         "e": np.ones((4, 2)),
+        "omega": (np.ones((1, 4, 2)) / (4 * 2)).tolist(),
+        "omega_SS": (np.ones((4, 2)) / (4 * 2)).tolist(),
+        "omega_S_preTP": (np.ones((4, 2)) / (4 * 2)).tolist(),
+        "imm_rates": np.zeros((1, 4, 2)).tolist(),
+        "imm_rates_preTP": np.zeros((4, 2)).tolist(),
     }
 )
 p1.retire = [3, 3, 3, 3, 3, 3, 3, 3]
