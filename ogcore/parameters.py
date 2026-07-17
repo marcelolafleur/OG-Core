@@ -355,19 +355,25 @@ class Specifications(paramtools.Parameters):
             self.g_n_ss = 0.0
             self.g_n_preTP = 0.0
             self.g_n = np.zeros(self.T + self.S)
-            surv_rate = np.ones_like(self.rho) - self.rho
+            # Average rho over J for scalar survival computation
+            rho_ss = self.rho[-1, :, :].mean(axis=-1)  # (S,)
             surv_rate1 = np.ones((self.S,))  # prob start at age S
-            surv_rate1[1:] = np.cumprod(surv_rate[-1, :-1], dtype=float)
+            surv_rate1[1:] = np.cumprod(1 - rho_ss[:-1], dtype=float)
             # number of each age alive at any time
-            omega_SS = np.ones(self.S) * surv_rate1
-            self.omega_SS = omega_SS / omega_SS.sum()
-            self.imm_rates = np.zeros((self.T + self.S, self.S))
-            self.omega = np.tile(
-                np.reshape(self.omega_SS, (1, self.S)), (self.T + self.S, 1)
+            omega_SS_1d = surv_rate1 / surv_rate1.sum()  # (S,)
+            # Expand to (S, J) joint distribution
+            lambdas_arr = np.array(self.lambdas).reshape(1, self.J)
+            self.omega_SS = (
+                omega_SS_1d.reshape(self.S, 1) * lambdas_arr
             )
-            self.omega_S_preTP = self.omega_SS
-            self.imm_rates_preTP = np.zeros(self.S)
-            self.rho_preTP = self.rho[0, :]
+            self.imm_rates = np.zeros((self.T + self.S, self.S, self.J))
+            self.omega = np.tile(
+                self.omega_SS.reshape(1, self.S, self.J),
+                (self.T + self.S, 1, 1),
+            )
+            self.omega_S_preTP = self.omega_SS.copy()
+            self.imm_rates_preTP = np.zeros((self.S, self.J))
+            self.rho_preTP = self.rho[0, :, :]
 
         # Create time series of stationarized UBI transfers
         self.ubi_nom_array = self.get_ubi_nom_objs()
