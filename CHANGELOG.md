@@ -20,7 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   through the existing non-convergence checks instead of spending the
   rest of `maxiter`. The window check lives in
   `ogcore.solvers.diagnose_stall` and works for both the picard and
-  anderson update rules.
+  anderson update rules. The diagnosis is re-logged if it changes (e.g.
+  escalates from cycling to diverging), and a run that ends unconverged
+  while stalled carries the diagnosis in the `RuntimeError` message, so
+  it reaches users who only see the traceback.
 
 ## [0.17.0] - 2026-07-16 12:00:00
 
