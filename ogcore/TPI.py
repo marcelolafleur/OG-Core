@@ -1542,11 +1542,11 @@ def run_TPI(p, client=None):
                 stall_reported = True
                 if stall == "diverging":
                     logger.error(
-                        "TPI stalled and diverging: the distance grew for "
-                        f"{p.TPI_stall_window} straight iterations. This "
-                        "usually signals an inconsistent fiscal block "
-                        "(spending, revenue, and debt_ratio_ss), not a "
-                        "solver problem."
+                        "TPI stalled and diverging: the best distance over "
+                        f"the last {p.TPI_stall_window} iterations is far "
+                        "above the earlier best. This usually signals an "
+                        "inconsistent fiscal block (spending, revenue, and "
+                        "debt_ratio_ss), not a solver problem."
                     )
                 else:
                     logger.error(

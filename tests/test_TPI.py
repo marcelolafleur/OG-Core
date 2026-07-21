@@ -362,10 +362,14 @@ def test_diagnose_stall_oscillating():
 
 
 def test_diagnose_stall_diverging():
-    # A distance that grew every iteration of the window is diagnosed as
-    # a diverging economy rather than a cycling solver.
+    # A recent best far above the earlier best is diagnosed as a
+    # diverging economy rather than a cycling solver -- whether the
+    # growth is smooth or a widening bounce.
     growing = 0.1 * 1.05 ** np.arange(100)
     assert solvers.diagnose_stall(growing, 100, 20, 0.05) == "diverging"
+    rng = np.arange(100)
+    growing_bounce = 0.05 * 1.1**rng * (1.0 + 0.3 * (-1.0) ** rng)
+    assert solvers.diagnose_stall(growing_bounce, 100, 20, 0.05) == "diverging"
 
 
 file_in1 = os.path.join(
