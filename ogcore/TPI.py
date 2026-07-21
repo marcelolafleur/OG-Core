@@ -931,6 +931,7 @@ def run_TPI(p, client=None):
     TPIdist = 10
     euler_errors = np.zeros((p.T, 2 * p.S, p.J))
     TPIdist_vec = np.zeros(p.maxiter)
+    stall_reported = False
     # Pluggable outer-loop update rule. Default "picard" -> None -> the native
     # damped functional-iteration path below (unchanged, so golden outputs
     # are preserved); "anderson" accelerates using the residual history. See
@@ -1525,6 +1526,39 @@ def run_TPI(p, client=None):
         TPIiter += 1
         logger.info(f"Iteration: {TPIiter}")
         logger.info(f"Distance: {TPIdist}")
+        # Stall detection: when the best distance has stopped improving
+        # over a window of iterations, further iterations repeat the same
+        # pattern and cannot reach the tolerance -- diagnose the cause and,
+        # if TPI_stall_action="stop", end the loop early (the solution
+        # checks after the loop then fail the run as any non-convergence).
+        # In the default warn mode the diagnosis is logged once per stall.
+        stall = solvers.diagnose_stall(
+            TPIdist_vec, TPIiter, p.TPI_stall_window
+        )
+        if stall is None:
+            stall_reported = False
+        else:
+            if not stall_reported:
+                stall_reported = True
+                if stall == "diverging":
+                    logger.error(
+                        "TPI stalled and diverging: the distance grew for "
+                        f"{p.TPI_stall_window} straight iterations. This "
+                        "usually signals an inconsistent fiscal block "
+                        "(spending, revenue, and debt_ratio_ss), not a "
+                        "solver problem."
+                    )
+                else:
+                    logger.error(
+                        "TPI stalled: the best distance has not improved "
+                        f"over the last {p.TPI_stall_window} iterations "
+                        f"(current {TPIdist:.2e}, tolerance "
+                        f"{p.mindist_TPI}). The outer loop is cycling; try "
+                        "a lower nu, or TPI_outer_method='anderson' if not "
+                        "already enabled."
+                    )
+            if p.TPI_stall_action == "stop":
+                break
 
     # Compute effective and marginal tax rates for all agents
     num_params = len(p.mtrx_params[0][0])

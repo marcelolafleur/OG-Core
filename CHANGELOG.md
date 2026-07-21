@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Stall detection for the TPI outer loop (Issue #1177): when the best
+  distance has not improved over the last `TPI_stall_window` iterations
+  (default 50; 0 disables), `run_TPI` logs a diagnosis distinguishing a
+  cycling outer loop (suggesting a lower `nu` or
+  `TPI_outer_method="anderson"`) from a diverging economy (usually an
+  inconsistent fiscal block, which solver settings cannot fix). The
+  default `TPI_stall_action="warn"` only logs, leaving model solutions
+  unchanged; `"stop"` also ends the loop early, so a hopeless run fails
+  through the existing non-convergence checks instead of spending the
+  rest of `maxiter`. The window check lives in
+  `ogcore.solvers.diagnose_stall` and works for both the picard and
+  anderson update rules.
+
 ## [0.17.0] - 2026-07-16 12:00:00
 
 ### Bug Fixes
