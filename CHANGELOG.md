@@ -25,6 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   while stalled carries the diagnosis in the `RuntimeError` message, so
   it reaches users who only see the traceback.
 
+## [0.18.0] - 2026-07-20 12:00:00
+
+### Added
+
+- Demographic parameters (`rho`, `omega`, `imm_rates`) are now allowed to
+  vary across lifetime income groups, `J`. See PR [#1165](https://github.com/PSLmodels/OG-Core/pull/1165)
+
 ## [0.17.0] - 2026-07-16 12:00:00
 
 ### Bug Fixes
@@ -684,6 +691,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Any earlier versions of OG-USA can be found in the [`OG-Core`](https://github.com/PSLmodels/OG-Core) repository [release history](https://github.com/PSLmodels/OG-Core/releases) from [v.0.6.4](https://github.com/PSLmodels/OG-Core/releases/tag/v0.6.4) (Jul. 20, 2021) or earlier.
 
 
+[0.18.0]: https://github.com/PSLmodels/OG-Core/compare/v0.17.0...v0.18.0
+[0.17.0]: https://github.com/PSLmodels/OG-Core/compare/v0.16.4...v0.17.0
+[0.16.4]: https://github.com/PSLmodels/OG-Core/compare/v0.16.3...v0.16.4
 [0.16.3]: https://github.com/PSLmodels/OG-Core/compare/v0.16.2...v0.16.3
 [0.16.2]: https://github.com/PSLmodels/OG-Core/compare/v0.16.1...v0.16.2
 [0.16.1]: https://github.com/PSLmodels/OG-Core/compare/v0.16.0...v0.16.1

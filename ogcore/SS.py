@@ -77,7 +77,7 @@ def euler_equation_solver(guesses, *args):
         tr,
         ubi,
         theta,
-        p.rho[-1, :],
+        p.rho[-1, :, j],
         p.etr_params[-1],
         p.mtry_params[-1],
         None,
@@ -515,9 +515,7 @@ def inner_loop(outer_loop_vars, p, client):
     # (S, J) nssmat broadcasts into an (S, S) outer product, scaling the
     # income sum by S. p.e[-1, :, :] is already (S, J).
     average_income_model = (
-        (new_r_p * b_s + new_w * p.e[-1, :, :] * nssmat)
-        * p.omega_SS.reshape(p.S, 1)
-        * p.lambdas.reshape(1, p.J)
+        (new_r_p * b_s + new_w * p.e[-1, :, :] * nssmat) * p.omega_SS
     ).sum()
     if p.baseline:
         new_factor = p.mean_income_data / average_income_model

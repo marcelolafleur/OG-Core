@@ -1017,6 +1017,18 @@ param_updates10 = {
     "eta": np.ones((40, 1)) * (1 / 40),
     "eta_RM": np.ones((40, 1)) * (1 / 40),
     "replacement_rate_adjust": [[1.0]],
+    # Collapse J dimension from TEST_PARAM_DICT (J=2) to J=1
+    # omega arrays: sum over J (joint distribution marginal)
+    "omega": np.array(TEST_PARAM_DICT["omega"]).sum(-1, keepdims=True),
+    "omega_SS": np.array(TEST_PARAM_DICT["omega_SS"]).sum(-1, keepdims=True),
+    "omega_S_preTP": np.array(TEST_PARAM_DICT["omega_S_preTP"]).sum(
+        -1, keepdims=True
+    ),
+    # rho/imm_rates: same across J, so just take first slice
+    "rho": np.array(TEST_PARAM_DICT["rho"])[:, :, 0:1],
+    "rho_preTP": np.array(TEST_PARAM_DICT["rho_preTP"])[:, 0:1],
+    "imm_rates": np.array(TEST_PARAM_DICT["imm_rates"])[:, :, 0:1],
+    "imm_rates_preTP": np.array(TEST_PARAM_DICT["imm_rates_preTP"])[:, 0:1],
 }
 filename10 = os.path.join(CUR_PATH, "test_io_data", "run_TPI_outputs_J1.pkl")
 # read in mono tax funcs (not age specific)
