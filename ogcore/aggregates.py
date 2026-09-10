@@ -415,6 +415,12 @@ def revenue(
         cons_tax_revenue = (
             (tax.cons_tax_liab(c, p_i, p, method) * pop_weights).sum(1).sum(1)
         )
+    # Payroll tax revenue is already inside iit_payroll_tax_revenue: each
+    # household's income_payroll_tax_liab includes T_P = tau_payroll *
+    # labor_income (see tax.income_tax_liab). get_payroll_tax_revenue just
+    # re-derives that same amount from the aggregate wage bill so the
+    # income vs payroll split can be reported; it must NOT be added into
+    # the total again (that double-counted payroll revenue -- Issue #1199).
     payroll_tax_revenue = get_payroll_tax_revenue(
         w, L, iit_payroll_tax_revenue, p, method
     )
