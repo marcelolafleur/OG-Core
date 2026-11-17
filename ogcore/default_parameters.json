@@ -370,7 +370,7 @@
         "param_notation": "$\\beta_{j,ann}$",
         "section_1": "Household Parameters",
         "section_2": "Behavioral Assumptions",
-        "notes": "Default value from Carroll (JME, 2009).  Allows for each type to have a different value.",
+        "notes": "Default value from Carroll (JME, 2009).  Allows for each type to have a different value. Values above 1 are admitted: with labor-augmenting growth g_y the discount factor households apply to detrended consumption is beta * exp(-sigma * g_y), which stays below 1 at the higher sigma values estimated for fast-growing low-income countries (Kocherlakota, JME, 1990).",
         "type": "float",
         "number_dims": 1,
         "value": [
@@ -389,7 +389,7 @@
         "validators": {
             "range": {
                 "min": 0.0,
-                "max": 0.9999
+                "max": 1.1
             }
         }
     },

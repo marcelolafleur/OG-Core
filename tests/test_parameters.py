@@ -254,6 +254,14 @@ def test_sigma_admits_low_income_country_values():
     assert len(spec.errors) == 0
 
 
+def test_beta_admits_values_above_one():
+    """With growth, beta * exp(-sigma * g_y) is what must stay below 1."""
+    spec = Specifications()
+    spec.update_specifications({"sigma": 3.0, "beta_annual": [1.03]})
+    assert len(spec.errors) == 0
+    assert (spec.beta_annual * np.exp(-spec.sigma * spec.g_y_annual) < 1).all()
+
+
 def test_update_specification_with_json():
     spec = Specifications()
     new_spec_json = """
