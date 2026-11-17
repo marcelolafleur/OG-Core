@@ -400,7 +400,7 @@
         "param_notation": "$\\sigma$",
         "section_1": "Household Parameters",
         "section_2": "Behavioral Assumptions",
-        "notes": "Default value from Attanasio, Banks, Meghir and Weber (JEBS, 1999).",
+        "notes": "Default value from Attanasio, Banks, Meghir and Weber (JEBS, 1999). The upper bound of 5.0 admits the values estimated for low-income countries, where the intertemporal elasticity of substitution (1/sigma) is about 0.2 to 0.35 (Ogaki, Ostry and Reinhart, IMF Staff Papers, 1996; Havranek, Horvath, Irsova and Rusnak, JIE, 2015).",
         "type": "float",
         "value": [
             {
@@ -410,7 +410,7 @@
         "validators": {
             "range": {
                 "min": 1.0,
-                "max": 2.0
+                "max": 5.0
             }
         }
     },

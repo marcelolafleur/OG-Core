@@ -246,6 +246,14 @@ def test_update_specifications_with_dict():
     assert len(spec.errors) == 0
 
 
+def test_sigma_admits_low_income_country_values():
+    """Low-income-country estimates of 1/sigma are about 0.2 to 0.35."""
+    spec = Specifications()
+    spec.update_specifications({"sigma": 3.0})
+    assert spec.sigma == 3.0
+    assert len(spec.errors) == 0
+
+
 def test_update_specification_with_json():
     spec = Specifications()
     new_spec_json = """
